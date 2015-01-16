@@ -1,0 +1,12 @@
+{
+	"name": "JiraHelper",
+	"version": "0.0.1",
+	"manifest_version": 2,
+	"content_scripts": [
+    {
+      "matches": ["https://jira.buyerquest.net/*"],
+      "js": ["js/content_script.js"],
+      "run_at": "document_end"
+    }
+  ]
+}
