@@ -8,7 +8,7 @@ var showTable = function () {
 	footer.insertBefore(tableDiv, footer.childNodes[0]);
 
 	var days = jQuery('.tempo-timesheet-table').last();
-	days = days.find('.day.tt-right-border.nav.edit-day.value-cell');
+	days = days.find('.day.tt-right-border.nav.edit-day');
 	var day;
 	var $row;
 	var key;
@@ -70,8 +70,18 @@ var showTable = function () {
 	jQuery(tableDiv).html(html);
 }
 
-var header = document.getElementsByClassName('aui-page-header-inner')[0];
-if (header != undefined) {
+var itemHeader = document.querySelector('.navigator-issue-only #summary-val');
+if (itemHeader != undefined) {
+	var span = document.createElement('span');
+	var issueElement = document.getElementById('summary-val');
+	var branchName = document.getElementById('key-val').textContent + '-' + issueElement.textContent.replace(/[^\w]+/gi, '-');
+	var spanText = document.createTextNode(branchName);
+	span.appendChild(spanText);
+	issueElement.parentNode.appendChild(span);
+}
+
+var tempoHeader = document.querySelector('.tempo .aui-page-header-inner');//document.getElementsByClassName('aui-page-header-inner')[0];
+if (tempoHeader != undefined) {
 	var div = document.createElement('div');
 	div.className = 'aui-avatar-large';
 	var button = document.createElement('button');
@@ -82,6 +92,6 @@ if (header != undefined) {
 	span.appendChild(text);
 	button.appendChild(span);
 	div.appendChild(button);
-	header.appendChild(div);
+	tempoHeader.appendChild(div);
 	button.addEventListener('click', showTable);
 }
