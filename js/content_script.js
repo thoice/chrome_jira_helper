@@ -1,73 +1,89 @@
 var showTable = function () {
 	var tableDiv = document.getElementById('totals-table');
-	if (tableDiv == undefined) {
-	  tableDiv = document.createElement('div');
-	  tableDiv.id = 'totals-table'
-	}
-	var footer = document.getElementById('footer');
-	footer.insertBefore(tableDiv, footer.childNodes[0]);
+if (tableDiv == undefined) {
+  tableDiv = document.createElement('div');
+  tableDiv.id = 'totals-table'
+}
+var footer = document.getElementById('footer');
+footer.insertBefore(tableDiv, footer.childNodes[0]);
 
-	var days = jQuery('.tempo-timesheet-table').last();
-	days = days.find('.day.tt-right-border.nav.edit-day');
-	var day;
-	var $row;
-	var key;
-	var totals = {};
+var days = jQuery('.tempo-timesheet-table').last();
+days = days.find('.day.tt-right-border.nav.edit-day');
+var day, $row, key, dayValue;
+var totals = {};
 
-	for (var i = 0; i < days.length ; i++) {
-	  day = days[i];
-	  dates = day.abbr.split('|');
-	  date = dates[0];
-	  $row = jQuery(day.parentNode);
-	  key = $row.find('.issuekey')[0].innerText.trim();
-	  projectKey = key.split('-')[0];
+for (var i = 0; i < days.length ; i++) {
+  day = days[i];
+  dates = day.abbr.split('|');
+  date = Number.parseInt(dates[0].substring(0,2));
+  date += '-' + Number.parseInt(dates[0].substring(2,4));
+  date += '-' + Number.parseInt(dates[0].substring(4));
+  $row = jQuery(day.parentNode);
+  key = $row.find('.issuekey')[0].innerText.trim();
+  projectKey = key.split('-')[0];
 
-	  if (totals[date] == undefined) {
-	    totals[date] = {};
-	  }
-	  if (totals[date][projectKey] == undefined) {
-	    totals[date][projectKey] = {
-	      'items': {},
-	      'total': 0
-	    };
-	  }
-	  dayValue = Number(day.innerText);
-	  totals[date][projectKey]['items'][key] = dayValue;
-	  totals[date][projectKey]['total'] += dayValue;
-	}
+  if (totals[date] == undefined) {
+    totals[date] = {
+      endOfWeek: false
+    };
+  }
+  if (totals[date][projectKey] == undefined) {
+    totals[date][projectKey] = {
+      items: {},
+      total: 0
+    };
+  }
+  if (jQuery(day).hasClass('value-cell')) {
+    dayValue = Number(day.innerText);
+    totals[date][projectKey]['items'][key] = dayValue;
+    totals[date][projectKey]['total'] += dayValue;
+  }
+  
+  if (jQuery(day).hasClass('tt-end-of-week')) {
+    totals[date]['endOfWeek'] = true;
+  }
+}
 
-	var sortedTotals = [];
+var html = '';
+var tickets = [];
+var total = 0;
+var rowHtml = '<div class="totals-row style="display:table-row"">';
+for (key in totals) {
+  day = totals[key];
+  dayHtml = '<div class="totals-cell" style="margin: 2px; font-size: 0.9em; height: 100%; box-sizing: border-box; border: 1px solid gray;padding: 0.5em; display: table-cell;"><span>' + key + '</span><br/>';
 
-	for (k in totals) {
-		if (totals.hasOwnProperty(k)) {
-			sortedTotals.push(k);
-		}
-	};
-	sortedTotals.sort();
+  for (projectKey in day) {
+    if (projectKey == 'endOfWeek') {
+      continue;
+    }
 
-	var html = '';
-	var tickets = [];
-	var total = 0;
-	for (var sortedKey = 0; sortedKey < sortedTotals.length; sortedKey++) {
-		key = sortedTotals[sortedKey];
-	  	day = totals[key];
-	  	dayHtml = '<div style="float: left; margin: 2px; font-size: 0.9em; height: 100%; box-sizing: border-box; border: 1px solid gray;padding: 0.5em;"><span>' + key + '</span><br/>';
+    total = day[projectKey]['total'];
+    if (total == 0) {
+      continue;
+    }
+    
+    dayHtml += '<span>' + projectKey + '</span>: ';
+    dayHtml += '<span>' + total + '</span><br/>';
+    tickets = day[projectKey]['items'];
+    for (ticket in tickets) {
+      dayHtml += '<span>' + ticket + ' (' + tickets[ticket] + ')</span><br/>'
+    }
+  }
+  dayHtml += '</div>';
+  rowHtml += dayHtml;
+  if (day.endOfWeek == true) {
+    rowHtml += '</div>';
+    html += rowHtml;
+    rowHtml = '<div class="totals-row" style="display:table-row">';
+  }
+}
 
-	  	for (projectKey in day) {
-	    	total = day[projectKey]['total']
-	    	dayHtml += '<span>' + projectKey + '</span><br/>';
-	    	dayHtml += '<span>' + total + '</span><br/>';
-	    	tickets = day[projectKey]['items'];
-	    	for (ticket in tickets) {
-	      		dayHtml += '<span>' + ticket + ' (' + tickets[ticket] + ')</span><br/>'
-	    	}
-	  	}
-	  	dayHtml += '</div>';
-	  	html += dayHtml;
-	}
+if (rowHtml != '' && rowHtml != '<div class="totals-row style="display:table-row"">') {
+  html += rowHtml;
+}
 
-	html = '<div style="min-height: 50px; background-color: red; overflow: hidden;">' + html + '</div>';
-	jQuery(tableDiv).html(html);
+html = '<div style="min-height: 50px; overflow: hidden; display: table; width: 100%;">' + html + '</div>';
+jQuery(tableDiv).html(html);
 }
 
 var itemHeader = document.querySelector('.navigator-issue-only #summary-val');
